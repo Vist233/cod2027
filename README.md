@@ -1,5 +1,8 @@
 # COD 2027 // 灰区协议
 
+[![CI](https://github.com/Vist233/cod2027/actions/workflows/ci.yml/badge.svg)](https://github.com/Vist233/cod2027/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-5ce9ff.svg)](LICENSE)
+
 **一句命令，一个能联机的 3D 第一人称射击游戏。**
 
 由 **dsfalsh 1017** 根据一条提示词生成第一版，再通过多轮对话迭代成现在可玩的
@@ -190,6 +193,8 @@ npm run test:combat  # 两个 WS 客户端自动寻路、瞄准、射击
 `smoke` 使用 Playwright 的 Chrome channel，截图写入 `screenshots/`。
 默认连接 `http://localhost:2027`；换端口时可传 `BASE_URL=http://localhost:3000 npm run smoke`，
 对战测试可传 `WS_URL=ws://localhost:3000/ws npm run test:combat`。
+
+GitHub Actions 会在每次 push 到 `main` 和 PR 时执行语法检查与服务端对战测试。
 如果本机没有 Chrome：
 
 ```bash
@@ -215,6 +220,10 @@ npx playwright install chrome
 - **[docs/MULTIPLAYER.md](docs/MULTIPLAYER.md)**：多端联机、局域网、公网隧道与排障
 - **[AGENTS.md](AGENTS.md)**：给 Agent / 开发者的运行、架构、协议与多人对战说明
 - **[PROMPT.md](PROMPT.md)**：这个项目的原始提示词与迭代记录
+
+## License
+
+MIT © 2026 Vist233。见 [LICENSE](LICENSE)。
 
 ## 致谢
 

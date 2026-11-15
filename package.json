@@ -6,16 +6,23 @@
   "scripts": {
     "start": "node server.js",
     "smoke": "node scripts/smoke.mjs",
-    "test:combat": "node scripts/combat-test.mjs"
+    "test:combat": "node scripts/combat-test.mjs",
+    "test": "npm run test:combat"
   },
   "keywords": [
     "game",
+    "fps",
+    "first-person",
     "shooter",
     "pvp",
-    "websocket"
+    "threejs",
+    "webgl",
+    "websocket",
+    "multiplayer",
+    "browser-game"
   ],
   "author": "Vist233",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "three": "^0.180.0",

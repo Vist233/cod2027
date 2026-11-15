@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Syntax check
+        run: |
+          node --check server.js
+          for f in public/js/*.js shared/*.js scripts/*.mjs; do
+            node --check "$f"
+          done
+
+      - name: Start server and run combat test
+        run: |
+          npm start > server.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:2027/ > /dev/null; then
+              break
+            fi
+            sleep 0.5
+          done
+          curl -fsS http://localhost:2027/ > /dev/null
+          npm run test:combat
+
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: server.log
+          if-no-files-found: ignore

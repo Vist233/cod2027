@@ -226,3 +226,7 @@ app.yaw = Math.atan2(enemy.y - self.y, enemy.x - self.x);
 - [ ] 手动验证受影响的模式（训练场 / 快速匹配 / 私人房 / 结算）
 - [ ] README 或 AGENTS.md 中相关说明已同步
 - [ ] 没有提交测试用临时配置（尤其是 `killLimit`）
+
+## License
+
+MIT © 2026 Vist233。提交贡献即表示同意以 MIT 协议发布。
