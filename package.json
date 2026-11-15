@@ -1,0 +1,39 @@
+{
+  "name": "cod2027",
+  "version": "0.5.0",
+  "description": "COD 2027 // 灰区协议 — 3D 第一人称 1v1 战术射击 PvP",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "smoke": "node scripts/smoke.mjs",
+    "test:combat": "node scripts/combat-test.mjs"
+  },
+  "keywords": [
+    "game",
+    "shooter",
+    "pvp",
+    "websocket"
+  ],
+  "author": "Vist233",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "three": "^0.180.0",
+    "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vist233/cod2027.git"
+  },
+  "homepage": "https://github.com/Vist233/cod2027#readme",
+  "bugs": {
+    "url": "https://github.com/Vist233/cod2027/issues"
+  }
+}

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="theme-color" content="#060a0e" />
+    <title>COD 2027 // 灰区协议</title>
+    <meta
+      name="description"
+      content="COD 2027：一款在线 1v1 第一人称 3D 战术射击游戏。快速匹配、私人房间、AI 训练场。"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <canvas id="game" aria-label="游戏画面"></canvas>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="damage-flash" id="damageFlash" aria-hidden="true"></div>
+    <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
+
+    <div id="hud" class="hud is-hidden">
+      <div class="hud-top">
+        <div class="operator-card self-card">
+          <div class="op-stripe"></div>
+          <div class="op-meta">
+            <span class="op-label">你</span>
+            <strong id="hudSelfName">OPERATOR</strong>
+          </div>
+          <div class="op-score"><span id="hudSelfScore">0</span><small>/ 10</small></div>
+        </div>
+
+        <div class="match-block">
+          <div class="match-state" id="matchState">等待部署</div>
+          <div class="match-timer" id="matchTimer">04:00</div>
+          <div class="match-rule">先达 <b>10</b> 击杀 · 4 分钟</div>
+        </div>
+
+        <div class="operator-card enemy-card">
+          <div class="op-score"><span id="hudEnemyScore">0</span><small>/ 10</small></div>
+          <div class="op-meta">
+            <span class="op-label">敌方</span>
+            <strong id="hudEnemyName">VIPER-09</strong>
+          </div>
+          <div class="op-stripe"></div>
+        </div>
+      </div>
+
+      <div class="minimap-panel">
+        <div class="minimap-head"><span>战术地图</span><span id="mapName">炼狱码头</span></div>
+        <canvas id="minimap" width="190" height="119"></canvas>
+        <div class="minimap-foot"><span><i class="dot self-dot"></i>你</span><span><i class="dot kit-dot"></i>医疗包</span></div>
+      </div>
+
+      <div class="killfeed" id="killfeed" aria-live="polite"></div>
+
+      <div class="vitals-panel">
+        <div class="vitals-head">
+          <span class="vital-label">生命体征</span>
+          <span class="vital-value" id="hpValue">100</span>
+        </div>
+        <div class="health-track"><div class="health-fill" id="healthFill"></div><div class="health-scan"></div></div>
+        <div class="ability-row">
+          <div class="ability">
+            <span class="ability-key">SHIFT</span>
+            <span class="ability-name">战术冲刺</span>
+            <div class="ability-track"><div id="dashFill"></div></div>
+          </div>
+          <div class="ability">
+            <span class="ability-key">R</span>
+            <span class="ability-name">换弹</span>
+            <span class="ability-hint" id="reloadHint">就绪</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="weapon-panel">
+        <div class="weapon-slots">
+          <div class="weapon-slot active" id="slotAr"><span>1</span>KV-9</div>
+          <div class="weapon-slot" id="slotSg"><span>2</span>M12</div>
+        </div>
+        <div class="weapon-main">
+          <div class="weapon-name" id="weaponName">KV-9 突击步枪</div>
+          <div class="ammo-row">
+            <span class="ammo" id="ammoValue">30</span>
+            <span class="ammo-divider">/</span>
+            <span class="ammo-reserve">∞</span>
+          </div>
+          <div class="reload-track"><div id="reloadFill"></div></div>
+        </div>
+      </div>
+
+      <div class="hud-bottom">
+        <span id="hudSelfTag">OPERATOR // 蓝队</span>
+        <span class="hud-ping" id="pingValue">-- MS</span>
+        <span class="hud-tip">WASD 移动 · 鼠标瞄准 · 左键射击 · 右键机瞄 · ESC 菜单</span>
+      </div>
+
+      <div class="crosshair3d" id="crosshair3d" aria-hidden="true">
+        <i class="ch-top"></i><i class="ch-right"></i><i class="ch-bottom"></i><i class="ch-left"></i><span></span>
+      </div>
+      <div class="damage-dirs" id="damageDirs" aria-hidden="true"></div>
+
+      <div class="countdown" id="countdown" aria-live="assertive">
+        <span class="countdown-kicker" id="countdownKicker">战术部署</span>
+        <strong id="countdownValue">3</strong>
+        <span class="countdown-sub" id="countdownSub">保持警戒</span>
+      </div>
+
+      <div class="death-overlay" id="deathOverlay">
+        <div class="death-line"></div>
+        <span class="death-kicker">K.I.A.</span>
+        <strong>你已被击倒</strong>
+        <p><b id="deathKiller">VIPER-09</b> 完成了击杀</p>
+        <div class="respawn-row"><span>重新部署</span><b id="respawnValue">2.6</b></div>
+      </div>
+
+      <div class="center-toast" id="centerToast"></div>
+      <div class="hitmarker" id="hitmarker"><i></i><i></i><i></i><i></i></div>
+
+      <div class="pause-overlay is-hidden" id="pauseOverlay">
+        <div class="pause-card">
+          <span class="eyebrow">TACTICAL PAUSE</span>
+          <h2 id="pauseTitle">行动暂停</h2>
+          <p id="pauseDesc">在线对战中游戏仍在继续，请尽快返回战场。</p>
+          <button class="btn btn-primary" id="resumeBtn">返回战场</button>
+          <button class="btn btn-ghost" id="surrenderBtn">撤离并返回大厅</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu" class="screen menu-screen">
+      <div class="menu-bg" aria-hidden="true">
+        <div class="menu-grid"></div>
+        <div class="menu-glow glow-a"></div>
+        <div class="menu-glow glow-b"></div>
+        <div class="menu-diagonal"></div>
+        <div class="corner-mark tl"></div>
+        <div class="corner-mark tr"></div>
+        <div class="corner-mark bl"></div>
+        <div class="corner-mark br"></div>
+      </div>
+
+      <header class="menu-topbar">
+        <div class="brand-small">
+          <span class="brand-sigil">◈</span>
+          <span>BLACKSITE COMMAND</span>
+          <i></i>
+          <span class="brand-faint">NODE 07</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="soundToggle" title="声音开关" aria-label="声音开关">
+            <span id="soundIcon">◖))</span>
+          </button>
+          <span class="server-state"><i></i>0.5.0 // PVP BETA</span>
+        </div>
+      </header>
+
+      <main class="menu-layout">
+        <section class="hero">
+          <div class="hero-kicker"><span></span>CLASSIFIED OPERATIONS // 2027</div>
+          <div class="logo">
+            <span class="logo-cod">COD</span>
+            <span class="logo-year">2027</span>
+          </div>
+          <div class="hero-cn">
+            <span>灰区协议</span>
+            <i>GREY ZONE PROTOCOL</i>
+          </div>
+          <p class="hero-copy">
+            2027 年，黑域网络失控。南极冰盖下的旧研究城被私人武装接管。
+            第一人称战术竞技场已上线：进入炼狱码头，用一场干净利落的 1v1 证明你的枪法。
+          </p>
+          <div class="hero-stats">
+            <div><b>01</b><span>竞技模式</span></div>
+            <div><b>10</b><span>击杀目标</span></div>
+            <div><b>04:00</b><span>行动时限</span></div>
+          </div>
+          <div class="hero-ticker">
+            <span class="ticker-label">LIVE FEED</span>
+            <div class="ticker-window">
+              <div class="ticker-track">
+                <span>炼狱码头 · 天气：浓雾 / 能见度低</span>
+                <span>黑域信号强度 74%</span>
+                <span>敌方单位 VIPER-09 正在巡逻</span>
+                <span>炼狱码头 · 天气：浓雾 / 能见度低</span>
+                <span>黑域信号强度 74%</span>
+                <span>敌方单位 VIPER-09 正在巡逻</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="menu-panel">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">OPERATOR ACCESS</span>
+              <h2>行动终端</h2>
+            </div>
+            <span class="panel-index">01 / 04</span>
+          </div>
+
+          <label class="field-label" for="callsign">呼号 / CALLSIGN</label>
+          <div class="callsign-field">
+            <span class="field-prefix">OP//</span>
+            <input id="callsign" maxlength="14" autocomplete="off" spellcheck="false" value="OPERATOR" />
+            <span class="field-edit">EDIT</span>
+          </div>
+
+          <div class="menu-actions">
+            <button class="btn btn-primary quick-btn" id="quickMatchBtn">
+              <span class="btn-index">01</span>
+              <span class="btn-label"><strong>快速匹配</strong><small>寻找在线对手 · 1v1</small></span>
+              <span class="btn-arrow">↗</span>
+            </button>
+
+            <div class="action-grid">
+              <button class="btn btn-dark" id="createRoomBtn">
+                <span class="btn-label"><strong>创建房间</strong><small>邀请好友对决</small></span>
+                <span class="btn-arrow">+</span>
+              </button>
+              <button class="btn btn-dark" id="joinRoomBtn">
+                <span class="btn-label"><strong>加入房间</strong><small>输入 4 位房间码</small></span>
+                <span class="btn-arrow">→</span>
+              </button>
+              <button class="btn btn-dark" id="practiceBtn">
+                <span class="btn-label"><strong>训练场</strong><small>与 VIPER-09 对抗</small></span>
+                <span class="btn-arrow">◎</span>
+              </button>
+              <button class="btn btn-story" id="storyBtn">
+                <span class="lock-pill">LOCKED</span>
+                <span class="btn-label"><strong>剧情战役</strong><small>2027 封锁区 · 即将开放</small></span>
+                <span class="btn-arrow">⌁</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="join-box is-hidden" id="joinBox">
+            <div class="join-head"><span>输入房间码</span><button id="closeJoinBtn" aria-label="关闭">×</button></div>
+            <div class="join-row">
+              <input id="roomCodeInput" maxlength="4" placeholder="A7K2" autocomplete="off" spellcheck="false" />
+              <button class="btn btn-primary" id="joinConfirmBtn">进入</button>
+            </div>
+            <p id="joinError"></p>
+          </div>
+
+          <div class="panel-foot">
+            <div class="control-chips">
+              <span><kbd>WASD</kbd>移动</span>
+              <span><kbd>鼠标</kbd>瞄准</span>
+              <span><kbd>左键</kbd>射击</span>
+              <span><kbd>右键</kbd>瞄准</span>
+              <span><kbd>SHIFT</kbd>冲刺</span>
+              <span><kbd>R</kbd>换弹</span>
+            </div>
+            <div class="build-line"><span>BUILD 0.5.0</span><i></i><span>ZERO-DEPENDENCY NETCODE</span></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="menu-footer">
+        <span>© 2027 BLACKSITE INTERACTIVE // 虚构作品</span>
+        <div><span>服务器状态</span><b class="online">ONLINE</b><i></i><span>匹配区域</span><b>ASIA-EAST</b></div>
+        <span>建议使用 Chrome / Edge · 需键鼠</span>
+      </footer>
+
+      <div class="searching is-hidden" id="searching">
+        <div class="radar"><i></i><i></i><i></i><span></span></div>
+        <span class="eyebrow">QUICK MATCH</span>
+        <h2>正在搜索对手</h2>
+        <p>正在接入灰区战术网络<span class="dots">...</span></p>
+        <div class="search-meta"><span id="queueTime">00:00</span><span>模式 // 1V1 死斗</span></div>
+        <button class="btn btn-ghost" id="cancelSearchBtn">取消匹配</button>
+      </div>
+
+      <div class="net-error is-hidden" id="netError">
+        <span class="eyebrow">CONNECTION LOST</span>
+        <h3>无法连接行动服务器</h3>
+        <p id="netErrorMsg">请确认服务器已启动。</p>
+        <button class="btn btn-primary" id="retryConnectBtn">重试连接</button>
+      </div>
+    </div>
+
+    <div id="lobby" class="screen lobby-screen is-hidden">
+      <div class="lobby-bg" aria-hidden="true"></div>
+      <header class="menu-topbar">
+        <div class="brand-small">
+          <span class="brand-sigil">◈</span><span>PRIVATE LOBBY</span><i></i><span class="brand-faint">SECURE CHANNEL</span>
+        </div>
+        <button class="icon-btn" id="lobbyLeaveBtn" title="离开房间">← 返回</button>
+      </header>
+      <main class="lobby-main">
+        <div class="lobby-heading">
+          <span class="eyebrow">ENCRYPTED ROOM</span>
+          <h1>私人作战室</h1>
+          <p>将房间码发送给你的对手。两人到齐后自动开始。</p>
+        </div>
+        <div class="room-code-block">
+          <span class="code-label">房间码 / ROOM CODE</span>
+          <div class="room-code" id="lobbyCode">----</div>
+          <button class="btn btn-dark copy-btn" id="copyCodeBtn">复制房间码</button>
+        </div>
+        <div class="lobby-slots">
+          <div class="lobby-slot filled">
+            <span class="slot-number">01</span>
+            <div class="slot-avatar">◈</div>
+            <div class="slot-info"><strong id="lobbyHostName">OPERATOR</strong><span>房主 · 已就绪</span></div>
+            <span class="ready-pill">READY</span>
+          </div>
+          <div class="lobby-vs">VS</div>
+          <div class="lobby-slot waiting" id="lobbyGuestSlot">
+            <span class="slot-number">02</span>
+            <div class="slot-avatar">?</div>
+            <div class="slot-info"><strong>等待挑战者</strong><span>分享房间码以邀请</span></div>
+            <span class="ready-pill dim">STANDBY</span>
+          </div>
+        </div>
+        <div class="lobby-status"><i></i><span id="lobbyStatus">正在等待对手接入…</span></div>
+        <div class="lobby-tip">提示：在另一台设备或浏览器标签页打开本页面，加入同一房间即可开始 1v1。</div>
+      </main>
+    </div>
+
+    <div id="result" class="screen result-screen is-hidden">
+      <div class="result-bg" aria-hidden="true"></div>
+      <div class="result-card">
+        <div class="result-top">
+          <span class="eyebrow">OPERATION COMPLETE</span>
+          <span class="result-code" id="resultCode">ROOM // ----</span>
+        </div>
+        <h1 id="resultTitle">任务完成</h1>
+        <p class="result-sub" id="resultSub">你压制了敌方单位。</p>
+        <div class="result-score">
+          <div class="score-side self">
+            <span>你</span><strong id="resultSelfScore">10</strong><small id="resultSelfName">OPERATOR</small>
+          </div>
+          <div class="score-mid">:</div>
+          <div class="score-side enemy">
+            <span>敌方</span><strong id="resultEnemyScore">4</strong><small id="resultEnemyName">VIPER-09</small>
+          </div>
+        </div>
+        <div class="result-stats">
+          <div><span>击杀</span><b id="statKills">10</b></div>
+          <div><span>死亡</span><b id="statDeaths">4</b></div>
+          <div><span>命中率</span><b id="statAcc">--</b></div>
+          <div><span>作战时间</span><b id="statTime">03:12</b></div>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn-primary" id="rematchBtn">再来一局</button>
+          <button class="btn btn-ghost" id="backMenuBtn">返回大厅</button>
+        </div>
+        <div class="rematch-status" id="rematchStatus"></div>
+        <div class="result-foot">所有战斗数据仅用于本局结算 · 无排位积分</div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status"></div>
+
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>
