@@ -11,7 +11,7 @@ npm run smoke             # 浏览器冒烟（需要 Chrome + Playwright）
 npm run test:combat       # 两个 WebSocket 客户端的对战测试
 ```
 
-- 运行时：Node.js 18+，ESM，无前端构建步骤。
+- 运行时：Node.js 20+，ESM，无前端构建步骤。
 - 技术栈：原生 DOM/CSS + Three.js + `ws`；测试用 Playwright。
 - 主玩法：**第一人称 3D、服务端权威、每局 1v1 的 PvP**。
 - 当前不包含剧情关卡；主菜单的“剧情战役”只是占位入口。

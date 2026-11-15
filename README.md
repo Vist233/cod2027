@@ -14,7 +14,7 @@
 ![COD 2027 战斗画面](docs/media/combat.png)
 
 <p align="center">
-  <code>Node.js 18+</code> · <code>Three.js</code> · <code>WebSocket</code> · <code>零构建</code>
+  <code>Node.js 20+</code> · <code>Three.js</code> · <code>WebSocket</code> · <code>零构建</code>
 </p>
 
 ## 一句话起点
@@ -59,7 +59,7 @@
 
 ## 快速开始
 
-需要 **Node.js 18+**。
+需要 **Node.js 20+**。
 
 ```bash
 git clone https://github.com/Vist233/cod2027.git
