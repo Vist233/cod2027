@@ -45,6 +45,7 @@ public/vendor/            Three.js 静态文件（不要加构建步骤）
 scripts/smoke.mjs         浏览器流程测试
 scripts/combat-test.mjs   WS 对战测试
 docs/media/               README 图片
+docs/MULTIPLAYER.md      多端/局域网/公网联机指南
 ```
 
 ## 运行与验证
@@ -58,6 +59,16 @@ PORT=3000 npm start
 # 调试模式，window.__COD__ = { app, game, input }
 open 'http://localhost:2027/?debug=1'
 ```
+
+### 多端联机/部署
+
+- 一台机器 `npm start` 当服务器，其他设备访问 `http://<房主局域网 IP>:2027`；
+  不要让朋友用 `localhost`。
+- 每个房间最多 2 人；同一服务器可以并行多个房间（多个 4 位房间码）。
+- 跨网络优先 Tailscale 私有地址；临时公开可用 Cloudflare Tunnel/ngrok，
+  HTTPS 下客户端自动使用 `wss://`。
+- 没有鉴权/房间密码/反作弊，不要建议用户长期把端口暴露公网。
+- 具体步骤和排障见 [docs/MULTIPLAYER.md](docs/MULTIPLAYER.md)。
 
 ### 改完代码的最小检查
 

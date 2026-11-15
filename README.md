@@ -67,7 +67,7 @@ npm start
 
 打开 **<http://localhost:2027>**。
 
-- 换端口：`PORT=3000 npm start`
+- 换端口：`PORT=3000 npm start`；Windows PowerShell 用 `$env:PORT=3000; npm start`
 - 调试模式：<http://localhost:2027/?debug=1>，控制台会暴露
   `window.__COD__ = { app, game, input }`
 
@@ -106,21 +106,30 @@ npm start
 | `Shift` | 战术冲刺（有冷却） |
 | `Esc` | 暂停 / 释放鼠标 |
 
-### 和朋友联机
+### 多端联机
 
-**同一局域网**（推荐，延迟最低）：
+一台设备运行 `npm start` 当服务器，其他设备用浏览器打开它的地址即可。**每局 1v1**；
+同一台服务器可以开多个房间，让多组人同时打。
 
-1. 房主运行 `npm start`。
-2. 查本机 IP：macOS 用 `ipconfig getifaddr en0`，Windows 用 `ipconfig`。
-3. 朋友访问 `http://<房主 IP>:2027`。
-4. 房主创建房间，把 4 位房间码发给朋友；或两人都点快速匹配。
+**同一 Wi-Fi（推荐）**
 
-**公网临时联机**：用 Cloudflare Tunnel、ngrok 等把本机 `2027` 端口暴露成 HTTPS 地址，
-朋友直接打开该地址即可。客户端会根据页面协议自动使用 `ws://` 或 `wss://`。
-公网联机时延迟取决于线路，建议先用训练场确认页面能正常打开。
+1. 房主运行 `npm start`，并保持终端不关。
+2. 查房主局域网 IP：macOS `ipconfig getifaddr en0`，Windows `ipconfig`，Linux `hostname -I`。
+3. 朋友打开 `http://<房主 IP>:2027`，例如 `http://192.168.1.23:2027`。
+4. 房主创建房间 → 把 4 位房间码发给朋友 → 朋友加入 → 两人都点“进入战场”。
 
-**本机双人测试**：开两个浏览器窗口（其中一个用无痕模式），分别输入不同呼号，
-一个创建房间、另一个输入房间码加入。
+**不同网络**
+
+- **Tailscale**（推荐给熟人）：所有人加入同一 tailnet，访问房主的 `http://100.x.y.z:2027`。
+- **Cloudflare Tunnel**：`cloudflared tunnel --url http://localhost:2027`，把生成的 HTTPS 地址发朋友。
+- **ngrok**：`ngrok http 2027`。
+- 客户端会自动根据页面协议使用 `ws://` 或 `wss://`，不需要改代码。
+
+**本机测试**：开两个浏览器窗口（其中一个用无痕模式），分别输入不同呼号，一个创建房间、
+另一个输入房间码加入。
+
+完整的 IP 查询、防火墙、公网隧道、多组同时开房和排障步骤见
+**[docs/MULTIPLAYER.md](docs/MULTIPLAYER.md)**。
 
 ### 规则
 
@@ -166,6 +175,7 @@ public/vendor/           Three.js 静态文件
 scripts/smoke.mjs        Playwright 浏览器冒烟测试
 scripts/combat-test.mjs  两个 WebSocket 客户端的对战测试
 docs/media/              README 截图
+docs/MULTIPLAYER.md      多端/局域网/公网联机指南
 ```
 
 ## 测试
@@ -202,6 +212,7 @@ npx playwright install chrome
 
 ## 更多文档
 
+- **[docs/MULTIPLAYER.md](docs/MULTIPLAYER.md)**：多端联机、局域网、公网隧道与排障
 - **[AGENTS.md](AGENTS.md)**：给 Agent / 开发者的运行、架构、协议与多人对战说明
 - **[PROMPT.md](PROMPT.md)**：这个项目的原始提示词与迭代记录
 
